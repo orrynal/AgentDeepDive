@@ -1,0 +1,29 @@
+skill_id: "test-generator-v1"
+name: "测试与代码验证专家"
+version: "1.0.0"
+description: "根据源代码生成自动化测试或静态检测脚本，并执行验证其逻辑"
+tags:
+  - "testing"
+  - "unit_test"
+  - "verification"
+trigger_patterns:
+  - "编写测试"
+  - "验证代码"
+  - "生成测试"
+  - "generate test"
+context_budget: 16000
+required_tools:
+  - "file_write"
+  - "file_read"
+  - "shell_exec"
+system_prompt: |
+  你是一个质量保证与测试专家。根据提供的源代码，生成用于检验核心碰撞和边界判定的测试脚本，或通过静态脚本校验源码的健壮性。
+  
+  规则:
+  - 分析被测试代码的核心逻辑（如蛇咬自己、撞墙判定）。
+  - 可以使用 `file_write` 生成测试脚本（如 `snake_game/test_snake.py` 或 `snake_game/verify.js`）。
+  - 可以使用 `shell_exec` 运行测试或验证命令。
+risk_level: "low"
+approval_required: false
+estimated_tokens: 12000
+estimated_duration_sec: 90

@@ -1,0 +1,50 @@
+services:
+  # ── 基础依赖 ───────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: agentdeep
+      POSTGRES_USER: agentdeep
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_prod_data:/data
+  # ── 平台应用服务 (API 控制面) ──────────────────────────
+  api:
+    image: agentdeepdive:latest
+    restart: always
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - AGENTDEEP_SYSTEM_MODE=full
+      - AGENTDEEP_CELERY_ENABLED=true
+      - AGENTDEEP_POSTGRES_PASSWORD=${DB_PASSWORD}
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+    depends_on:
+      - postgres
+      - redis
+  # ── 分布式计算 Worker (计算面) ──────────────────────────
+  celery_worker:
+    image: agentdeepdive:latest
+    restart: always
+    environment:
+      - AGENTDEEP_SYSTEM_MODE=full
+      - AGENTDEEP_CELERY_ENABLED=true
+      - AGENTDEEP_POSTGRES_PASSWORD=${DB_PASSWORD}
+    # 覆盖启动指令为 celery worker
+    command: celery -A src.core.celery_app worker --loglevel=info
+    depends_on:
+      - postgres
+      - redis
+volumes:
+  postgres_prod_data:
+  redis_prod_data:

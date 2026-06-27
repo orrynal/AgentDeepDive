@@ -1,0 +1,20 @@
+dag_id: "snake-builder-dag"
+name: "贪吃蛇游戏构建流水线"
+description: "使用多 Agent 并行编排完成贪吃蛇游戏的设计、编码与测试"
+nodes:
+  - node_id: "design"
+    name: "游戏架构设计"
+    skill_id: "doc-writer-v1"
+    description: "设计一个网页单文件 (Single-page HTML5) 贪吃蛇游戏的具体规则和功能架构。包含：10x10 格子、Canvas 渲染、分数面板、控制按键、以及霓虹暗黑科技感的配色方案（如霓虹绿蛇身、霓虹红食物、深灰色发光网格）。生成设计规范并使用 file_write 写入到 examples/snake_game/design.md 中。"
+
+  - node_id: "code"
+    name: "核心功能编码"
+    skill_id: "code-generator-v1"
+    dependencies: ["design"]
+    description: "根据 examples/snake_game/design.md 中的设计规范，编写完整的 index.html 单文件游戏。将 HTML, CSS, JS 合并入此文件。JS 必须包含完整的蛇运动、吃食物、碰撞检测、以及重新开始逻辑。使用 file_write 工具写入到 examples/snake_game/index.html 中。"
+
+  - node_id: "test"
+    name: "自动验证与运行测试"
+    skill_id: "test-generator-v1"
+    dependencies: ["code"]
+    description: "分析 examples/snake_game/index.html 的内容，编写一个简易的 Python 静态分析或验证脚本 `examples/snake_game/verify.py`，用于检查 HTML 标签闭合、是否有必要的 Canvas 节点、以及 JS 语法。利用 shell_exec 执行该 python 脚本以确保基础语法完全正确。"

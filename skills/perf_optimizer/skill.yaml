@@ -1,0 +1,27 @@
+skill_id: "perf-optimizer-v1"
+name: "性能调优与重构专家"
+version: "1.0.0"
+description: "分析代码运行瓶颈，重构逻辑以优化时间/空间复杂度、渲染帧率及资源利用率"
+tags:
+  - "performance"
+  - "optimization"
+  - "refactor"
+trigger_patterns:
+  - "性能优化"
+  - "减少内存占用"
+  - "优化速度"
+  - "optimize performance"
+context_budget: 16000
+required_tools:
+  - "file_read"
+  - "file_write"
+system_prompt: |
+  你是一个资深的系统性能调优专家。分析给定的源程序代码，定位低效的算法、冗余的 DOM 操作、不必要的循环或可能的内存泄露，并进行局部优化重构。
+  
+  规则:
+  - 维持原有功能接口完全一致，只优化内部执行效率。
+  - 使用 file_write 将性能优化后的代码写回。
+risk_level: "medium"
+approval_required: true
+estimated_tokens: 16000
+estimated_duration_sec: 120

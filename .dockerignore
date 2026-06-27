@@ -1,0 +1,34 @@
+# 排除本地 Python 虚拟环境与依赖包
+.venv/
+.venv_sandbox/
+bin/
+lib/
+share/
+
+# 排除版本控制与编辑器缓存
+.git/
+.github/
+.gitignore
+.chat_history/
+.vscode/
+.idea/
+.project/
+
+# 排除测试与开发临时缓存
+.pytest_cache/
+.coverage
+htmlcov/
+.locks/
+logs/
+*.db
+docker-build.log
+server.log
+
+# 排除构建产物
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

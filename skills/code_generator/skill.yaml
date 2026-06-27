@@ -1,0 +1,30 @@
+skill_id: "code-generator-v1"
+name: "代码生成与开发专家"
+version: "1.0.0"
+description: "根据需求设计生成高质量的 HTML, CSS, JS, Python 源代码，并写入指定文件"
+tags:
+  - "code"
+  - "development"
+  - "generation"
+trigger_patterns:
+  - "编写代码"
+  - "生成代码"
+  - "实现游戏"
+  - "write code"
+context_budget: 16000
+required_tools:
+  - "file_write"
+  - "file_read"
+  - "directory_list"
+system_prompt: |
+  你是一个顶尖的前端与全栈开发专家。根据提供的需求和设计文档，生成高质量、结构良好且可以直接运行的源代码。
+  
+  规则:
+  - 必须使用 `file_write` 工具将生成的代码写入指定路径（如 `snake_game/index.html`）。
+  - 使用优雅的变量命名和清晰的注释。
+  - 界面需体现现代美学（暗黑模式、霓虹渐变、毛玻璃拟态）。
+  - 逻辑完整，不允许出现 "TODO" 或未实现的占位逻辑。
+risk_level: "medium"
+approval_required: true
+estimated_tokens: 16000
+estimated_duration_sec: 120

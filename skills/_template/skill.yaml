@@ -1,0 +1,59 @@
+# Skill Definition Template
+# Copy this file and customize for your specific Skill
+
+skill_id: "my-skill-v1"
+name: "My Custom Skill"
+version: "1.0.0"
+description: "Describe what this skill does"
+
+# Tags for keyword matching
+tags:
+  - "keyword1"
+  - "keyword2"
+
+# Natural language trigger patterns
+trigger_patterns:
+  - "when user says this"
+  - "or something like this"
+
+# Context budget (max tokens to load)
+context_budget: 8000
+
+# Tools this skill needs access to
+required_tools:
+  - "file_read"
+
+# Input/output JSON Schema
+input_schema:
+  type: object
+  properties:
+    target_path:
+      type: string
+      description: "Path to analyze"
+  required:
+    - target_path
+
+output_schema:
+  type: object
+  properties:
+    result:
+      type: string
+    details:
+      type: object
+
+# System prompt for the Agent
+system_prompt: |
+  You are a specialized agent for [describe role].
+  Your task is to [describe task].
+  
+  Rules:
+  1. [Rule 1]
+  2. [Rule 2]
+
+# Risk and approval
+risk_level: "low"  # low | medium | high | critical
+approval_required: false
+
+# Estimates
+estimated_tokens: 10000
+estimated_duration_sec: 120

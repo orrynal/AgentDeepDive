@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentDeepDive - 企业级多智能体协同与 DAG 并行编排引擎</title>
+    <meta name="description" content="AgentDeepDive 是一款面向超级工程的高可用、高安全、可自愈的 Multi-Agent 编排平台。支持分布式原子锁、多租户 RBAC 沙箱隔离与人机协同审批。">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #05060b;
+            --card-bg: rgba(13, 17, 30, 0.45);
+            --card-border: rgba(255, 255, 255, 0.07);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.15);
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-pink: #ec4899;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-title: 'Space Grotesk', var(--font-sans);
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient Background Glows */
+        .ambient-glow-1 {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            top: -150px;
+            left: -150px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.18) 0%, rgba(0, 0, 0, 0) 70%);
+            z-index: -1;
+            filter: blur(60px);
+            pointer-events: none;
+        }
+
+        .ambient-glow-2 {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            top: 40%;
+            right: -300px;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+            z-index: -1;
+            filter: blur(80px);
+            pointer-events: none;
+            animation: pulse-glow 12s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.15); opacity: 1; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Container & Grid layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            background: rgba(5, 6, 11, 0.7);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
+            transition: all 0.3s ease;
+        }
+
+        .header-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo {
+            font-family: var(--font-title);
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 30%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .logo svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: url(#logo-grad);
+            stroke-width: 2.5;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover {
+            color: var(--text-primary);
+        }
+
+        .btn-github {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.2rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-github:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 10rem 0 6rem 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 1rem;
+            border-radius: 9999px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            color: #c084fc;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            letter-spacing: 0.05em;
+        }
+
+        .hero h1 {
+            font-family: var(--font-title);
+            font-size: 3.8rem;
+            line-height: 1.15;
+            font-weight: 700;
+            max-width: 900px;
+            margin: 0 auto 1.5rem auto;
+            background: linear-gradient(to right, #ffffff 40%, rgba(255, 255, 255, 0.6) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 3rem auto;
+        }
+
+        .hero-ctas {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 4rem;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.35);
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: #7c3aed;
+            box-shadow: 0 4px 25px rgba(139, 92, 246, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* CLI Code Block Section */
+        .cli-wrap {
+            max-width: 680px;
+            margin: 0 auto;
+            background: rgba(2, 4, 8, 0.75);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            text-align: left;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
+        }
+
+        .cli-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .dots {
+            display: flex;
+            gap: 0.35rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .dot-r { background: #ff5f56; }
+        .dot-y { background: #ffbd2e; }
+        .dot-g { background: #27c93f; }
+
+        .cli-title {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .cli-copy {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .cli-copy:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .cli-body {
+            color: #38bdf8;
+            user-select: text;
+        }
+
+        .cli-prompt {
+            color: rgba(255,255,255,0.4);
+            margin-right: 0.5rem;
+        }
+
+        .cli-comment {
+            color: #64748b;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 8rem 0;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-title);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
+            pointer-events: none;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.05);
+        }
+
+        .feature-icon-wrapper {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+        }
+
+        .feature-icon-wrapper svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--primary);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .feature-card h3 {
+            font-family: var(--font-title);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Demo Sandbox Monitor section */
+        .sandbox-demo {
+            padding: 6rem 0;
+            background: linear-gradient(180deg, rgba(5,6,11,0) 0%, rgba(13,17,30,0.3) 50%, rgba(5,6,11,0) 100%);
+        }
+
+        .demo-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        @media (max-width: 968px) {
+            .demo-wrap {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+            }
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        .demo-content h3 {
+            font-family: var(--font-title);
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-content p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 1.05rem;
+        }
+
+        .tech-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .tech-item svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--accent-cyan);
+            fill: none;
+            stroke-width: 2.5;
+        }
+
+        /* Web Interface Frame Simulation */
+        .visual-display {
+            background: #090d16;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            aspect-ratio: 16 / 10;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .visual-display-header {
+            background: #0e1322;
+            height: 38px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            justify-content: space-between;
+        }
+
+        .display-tabs {
+            display: flex;
+            gap: 1rem;
+            font-family: var(--font-title);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .display-tab-active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 2px;
+        }
+
+        .visual-body {
+            flex-grow: 1;
+            padding: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            overflow-y: auto;
+            position: relative;
+            background: radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 60%);
+        }
+
+        /* Flow diagram visualization simulating React Flow */
+        .flow-node-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .node {
+            background: rgba(13, 17, 30, 0.85);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            width: 190px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .node-active {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        .node-accent-cyan {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.15);
+        }
+
+        .node h4 {
+            font-family: var(--font-title);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .node-status {
+            font-size: 0.65rem;
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+
+        .node-status-running {
+            color: #f59e0b;
+        }
+
+        .flow-line {
+            position: absolute;
+            z-index: -1;
+            border-left: 2px dashed rgba(255,255,255,0.15);
+            height: 60px;
+        }
+
+        .flow-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            position: absolute;
+            top: 0;
+            left: -3px;
+            animation: pulse-down 2.5s infinite linear;
+        }
+
+        @keyframes pulse-down {
+            0% { top: 0; opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--card-border);
+            padding: 4rem 0;
+            margin-top: 6rem;
+            background: #020306;
+        }
+
+        .footer-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .footer-wrap {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+            }
+        }
+
+        .footer-logo {
+            font-family: var(--font-title);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="container header-wrap">
+            <a href="#" class="logo">
+                <svg viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#a78bfa" />
+                            <stop offset="100%" stop-color="#06b6d4" />
+                        </linearGradient>
+                    </defs>
+                    <polygon points="50,15 90,38 90,82 50,60" />
+                    <polygon points="50,15 10,38 10,82 50,60" />
+                    <polygon points="10,82 50,60 90,82 50,98" />
+                </svg>
+                AgentDeepDive
+            </a>
+            <nav>
+                <a href="#features">核心支柱</a>
+                <a href="#monitor">沙箱可视化</a>
+                <a class="btn-github" href="https://github.com/orrynal/AgentDeepDive" target="_blank">
+                    <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+                    </svg>
+                    GitHub
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="badge">PRODUCTION READY v0.1.0-ALPHA</div>
+            <h1>面向超级工程的企业级<br><span style="background: linear-gradient(135deg, #a78bfa 0%, #06b6d4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">多智能体 DAG 编排引擎</span></h1>
+            <p>基于非特权沙箱环境、多租户 OPA 规则策略与分布式锁。兼具高可用监控与人机协同审批自愈能力，为大模型 Agent 架构筑起坚固的基础安全基线。</p>
+            
+            <div class="hero-ctas">
+                <a href="https://github.com/orrynal/AgentDeepDive" class="btn-primary">
+                    快速开始
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+                <a href="#features" class="btn-secondary">了解核心特性</a>
+            </div>
+
+            <!-- Interactive CLI Block -->
+            <div class="cli-wrap">
+                <div class="cli-header">
+                    <div class="dots">
+                        <div class="dot dot-r"></div>
+                        <div class="dot dot-y"></div>
+                        <div class="dot dot-g"></div>
+                    </div>
+                    <div class="cli-title">Install AgentDeepDive CLI</div>
+                    <button class="cli-copy" onclick="copyCLICommand()" id="copyBtn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="copyIcon">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="cli-body">
+                    <span class="cli-comment"># 克隆并一键部署多智能体运行环境</span><br>
+                    <span class="cli-prompt">$</span> git clone https://github.com/orrynal/AgentDeepDive.git<br>
+                    <span class="cli-prompt">$</span> cd AgentDeepDive && make install<br>
+                    <span class="cli-comment"># 启动高可用监控中控台</span><br>
+                    <span class="cli-prompt">$</span> agentdeep doctor && agentdeep monitor start
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>全栈安全编排的三大核心支柱</h2>
+                <p>为生产级别的 Agent 应用解决状态失控、网络漂移、权限泄露与执行死锁等底层顽疾。</p>
+            </div>
+            
+            <div class="grid-3">
+                <!-- Card 1 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                    </div>
+                    <h3>DAG 编排与断点自愈</h3>
+                    <p>通过多向无环图（DAG）实现多 Agent 并行流水线作业。独创 Sentinel 资源回收机制与断点恢复（Restore Task）运行架构，在大模型超时或偶发错误下，系统状态自动秒级对齐并重试恢复。</p>
+                </div>
+                
+                <!-- Card 2 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <h3>非特权沙箱与 OPA 鉴权</h3>
+                    <p>Docker 与 K8s 双轨环境下默认采用非特权用户隔离，结合 OPA（Open Policy Agent）引擎实时校验细粒度 API 访问权限与租户数据隔离，从系统层面完全杜绝命令注入与 SSRF 跨站越权。</p>
+                </div>
+                
+                <!-- Card 3 -->
+                <div class="feature-card">
+                    <div class="feature-icon-wrapper">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <h3>多通道人机协同 (HITL)</h3>
+                    <p>针对智能合约与大资金决策等高危场景，提供覆盖微信、飞书、钉钉、Slack、邮件等九大主流平台的实时触达机制。通过独占型分布式原子锁技术，杜绝决策指令的二次并发执行错误。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sandbox Visual Section -->
+    <section class="sandbox-demo" id="monitor">
+        <div class="container demo-wrap">
+            <div class="demo-content">
+                <h3>高透明度的“玻璃舱”式<br><span style="color: var(--accent-cyan)">拓扑状态监控与遥测</span></h3>
+                <p>AgentDeepDive 自带 TUI 终端监控器与基于 React Flow 的 Cockpit 前端大屏。系统不仅提供健康探测，还通过 OTel 对 Agent 内部“调用栈-决策-工具执行”进行了全链路的 Trace 精准透视。</p>
+                
+                <div class="tech-list">
+                    <div class="tech-item">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        OTel 分布式链路遥测
+                    </div>
+                    <div class="tech-item">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        WebSocket 实时全双工通讯
+                    </div>
+                    <div class="tech-item">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        深度自愈Ready状态探针
+                    </div>
+                    <div class="tech-item">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Redis Lua 原子防重入锁
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Simulated Workspace Frame -->
+            <div class="visual-display">
+                <div class="visual-display-header">
+                    <div class="dots">
+                        <div class="dot dot-r"></div>
+                        <div class="dot dot-y"></div>
+                        <div class="dot dot-g"></div>
+                    </div>
+                    <div class="display-tabs">
+                        <span class="display-tab-active">DAG Flow Map</span>
+                        <span>Trace Explorer</span>
+                        <span>OPA Policy</span>
+                    </div>
+                    <span style="color: var(--text-secondary); font-size: 0.7rem; font-family: var(--font-mono)">LIVE</span>
+                </div>
+                <div class="visual-body">
+                    <div class="flow-node-wrapper">
+                        <!-- Node 1 -->
+                        <div class="node node-accent-cyan">
+                            <h4>Central Brain</h4>
+                            <div class="node-status">
+                                <span style="display:inline-block; width:6px; height:6px; background:var(--accent-green); border-radius:50%"></span>
+                                Idle (Success)
+                            </div>
+                        </div>
+                        <div class="flow-line" style="top: 25%; left: 50%;">
+                            <div class="flow-pulse"></div>
+                        </div>
+                        
+                        <!-- Node 2 -->
+                        <div class="node node-active" style="margin-top: 30px;">
+                            <h4>Code Execution Sand</h4>
+                            <div class="node-status node-status-running">
+                                <span style="display:inline-block; width:6px; height:6px; background:#f59e0b; border-radius:50%; animation: pulse-glow 1s infinite alternate"></span>
+                                Executing Trace...
+                            </div>
+                        </div>
+                        <div class="flow-line" style="top: 60%; left: 50%;">
+                            <div class="flow-pulse" style="animation-delay: 1.2s"></div>
+                        </div>
+                        
+                        <!-- Node 3 -->
+                        <div class="node" style="margin-top: 30px;">
+                            <h4>HITL Approver</h4>
+                            <div class="node-status" style="color: var(--text-secondary)">
+                                <span style="display:inline-block; width:6px; height:6px; background:var(--text-secondary); border-radius:50%"></span>
+                                Pending Input
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-wrap">
+            <a href="#" class="footer-logo">AgentDeepDive</a>
+            <div class="footer-text">
+                &copy; 2026 AgentDeepDive. Project licensed under the MIT Open Source License.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Clipboard Copy Script -->
+    <script>
+        function copyCLICommand() {
+            const commandText = "git clone https://github.com/orrynal/AgentDeepDive.git && cd AgentDeepDive && make install";
+            navigator.clipboard.writeText(commandText).then(() => {
+                const copyBtn = document.getElementById("copyBtn");
+                const originalHTML = copyBtn.innerHTML;
+                
+                // Show Checkmark Icon on Success
+                copyBtn.innerHTML = `
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                `;
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalHTML;
+                }, 2000);
+            }).catch(err => {
+                console.error("Failed to copy command: ", err);
+            });
+        }
+    </script>
+</body>
+</html>

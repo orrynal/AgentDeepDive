@@ -1,0 +1,44 @@
+skill_id: "web-searcher-v1"
+name: "网络搜索与信息检索专家"
+version: "1.0.0"
+description: "通过互联网搜索引擎检索最新的实时信息、开发资源或外部文档"
+tags:
+  - "web"
+  - "search"
+  - "network"
+  - "query"
+trigger_patterns:
+  - "联网搜索"
+  - "查找资料"
+  - "google search"
+  - "web search"
+  - "search the web"
+context_budget: 12000
+required_tools:
+  - "web_search_ddg"
+input_schema:
+  type: object
+  properties:
+    query:
+      type: string
+      description: "要检索的搜索查询词"
+  required:
+    - query
+output_schema:
+  type: object
+  properties:
+    results:
+      type: string
+      description: "检索到的网页摘要与链接"
+system_prompt: |
+  你是一个优秀的网络搜索与信息检索专家。根据用户输入的内容或查询需求，精确定制搜索词并使用 web_search_ddg 工具检索互联网上的相关网页。
+  
+  规则:
+  - 必须首先根据原始任务提炼出精准、简明、去掉无用虚词的搜索词。
+  - 调用 web_search_ddg 获取搜索结果。
+  - 对搜索结果进行仔细分析，提炼出回答用户问题或为后续开发任务所必需的核心信息。
+  - 给出整合好的搜索报告，提供清晰的结论与对应的参考来源 URL。
+risk_level: "low"
+approval_required: false
+estimated_tokens: 8000
+estimated_duration_sec: 30

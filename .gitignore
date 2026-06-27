@@ -1,0 +1,126 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+.venv_sandbox/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite3
+
+# Docker
+docker/data/
+
+# Alembic
+alembic/versions/*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Milvus data
+milvus_data/
+
+# Temporary
+tmp/
+.venv_tmp/
+
+# Node (dashboard)
+dashboard/node_modules/
+dashboard/.next/
+
+# Test Skills
+skills/test_evo_skill/
+
+# Chat History
+.chat_history/
+
+# Local memory and scratch scripts
+.memory/
+scratch/
+
+# Temporary recovery and debug files
+audit_recovered_*.py
+audit_write_*.py
+check_*.py
+extract_*.py
+extracted_*.py
+recover_*.py
+recovered_*.py
+inspect_*.py
+parse_*.py
+print_*.py
+search_main.py
+step_*.json
+
+# Concurrency locks
+.locks/
+
+# Local run CLI test scripts
+run_cli_test.py
+
+# Office Documents
+docs/**/*.docx
+*.docx
+
+# DAG store and local cache runtime
+.dag_store/
+skills/.cache/
+
+
+
+# Private & Sensitive documentation (strictly isolated locally)
+docs/project_audit_report_*.md
+docs/audit_report_resolution_status.md
+docs/project_code_audit_report.md
+docs/project_review*.md
+docs/discussion_log.md
+docs/issues_*.md
+docs/project_progress_log*.md
+docs/plans/
+docs/architecture/
+docs/en/architecture/
+docs/architecture_flowchart.md
+docs/comparison_harnessx_vs_agentdeepdive.md
+docs/implementation_plan.md
+docs/cli_analysis_and_implementation_plan.md
+docs/manus_lessons_implementation_plan.md
+docs/multi_tenant_rbac_*.md
+docs/role_system_implementation_plan.md
+docs/webui_design.md
+docs/future_roadmap_analysis.md
+docs/agent_deep_dive_part*.md
+docs/agent_planning_guide.md
+docs/agent_architecture_review.md
+docs/interactive_terminal_design.md

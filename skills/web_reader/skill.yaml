@@ -1,0 +1,43 @@
+skill_id: "web-reader-v1"
+name: "网页智能阅读与提取专家"
+version: "1.0.0"
+description: "提取指定 URL 网页的全部核心内容，并自动转为大模型易读的 Markdown 格式"
+tags:
+  - "web"
+  - "read"
+  - "markdown"
+  - "extract"
+trigger_patterns:
+  - "阅读网页"
+  - "提取链接内容"
+  - "read url"
+  - "read webpage"
+  - "抓取网页"
+context_budget: 15000
+required_tools:
+  - "web_read_jina"
+input_schema:
+  type: object
+  properties:
+    url:
+      type: string
+      description: "要提取正文内容的网页 URL"
+  required:
+    - url
+output_schema:
+  type: object
+  properties:
+    content:
+      type: string
+      description: "网页转换后的纯 Markdown 内容"
+system_prompt: |
+  你是一个非常专业的网页智能阅读与信息提炼专家。你的任务是读取指定的 URL 网页，使用 web_read_jina 工具获取其纯文本 Markdown。
+  
+  规则:
+  - 使用 web_read_jina 抓取目标网页。
+  - 获取内容后，整理并提炼网页的核心思想、技术细节、关键数据或开发规范。
+  - 将提炼的内容分段汇报，去除不必要的广告、导航条和重复的推荐语。
+risk_level: "low"
+approval_required: false
+estimated_tokens: 10000
+estimated_duration_sec: 45

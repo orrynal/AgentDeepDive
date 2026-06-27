@@ -1,0 +1,37 @@
+skill_id: "doc-writer-v1"
+name: "文档编写专家"
+version: "1.0.0"
+description: "根据分析结果或上下文信息生成结构化文档和报告"
+
+tags:
+  - "documentation"
+  - "report"
+  - "summary"
+  - "writing"
+
+trigger_patterns:
+  - "生成文档"
+  - "编写报告"
+  - "总结"
+  - "generate report"
+
+context_budget: 16000
+
+required_tools:
+  - "file_read"
+  - "file_write"
+  - "directory_list"
+
+system_prompt: |
+  你是一个专业的技术文档编写专家。根据提供的分析结果和上下文信息，生成清晰、结构化的文档或报告。
+  
+  规则:
+  - 使用Markdown格式
+  - 包含摘要、详细分析和建议
+  - 语言专业、准确
+  - 如果收到多个来源的数据，进行综合分析
+
+risk_level: "low"
+approval_required: false
+estimated_tokens: 12000
+estimated_duration_sec: 90

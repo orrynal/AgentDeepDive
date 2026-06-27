@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: agentdeep
+---
+# 1. 共享环境变量配置 (ConfigMap)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agentdeep-config
+  namespace: agentdeep
+data:
+  AGENTDEEP_SYSTEM_MODE: "full"
+  AGENTDEEP_CELERY_ENABLED: "true"
+  AGENTDEEP_REDIS_HOST: "redis.agentdeep.svc.cluster.local" # 指向集群内部 Redis 服务
+  AGENTDEEP_POSTGRES_HOST: "postgres.agentdeep.svc.cluster.local"
+  AGENTDEEP_K8S_VOLUME_CLAIM_NAME: "agentdeep-workspace-pvc" # 绑定沙箱共享存储卷
+  # 其他 LLM 密钥可以配置为 K8s Secret，此处为示例
+  LITELLM_API_KEY: "your-litellm-key"
+---
+# 2. 控制面 (FastAPI API Server)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentdeep-api
+  namespace: agentdeep
+spec:
+  replicas: 2 # 双副本高可用
+  selector:
+    matchLabels:
+      app: agentdeep-api
+  template:
+    metadata:
+      labels:
+        app: agentdeep-api
+    spec:
+      containers:
+      - name: api-container
+        image: docker.io/library/agentdeepdive:v1.0 # 生产镜像路径
+        imagePullPolicy: IfNotPresent
+        command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: agentdeep-config
+        volumeMounts:
+        - name: workspace-storage
+          mountPath: /workspace
+      volumes:
+      - name: workspace-storage
+        persistentVolumeClaim:
+          claimName: agentdeep-workspace-pvc
+---
+# 3. 对外服务暴露 (Service)
+apiVersion: v1
+kind: Service
+metadata:
+  name: agentdeep-api-service
+  namespace: agentdeep
+spec:
+  type: NodePort # 或者在云厂商环境使用 LoadBalancer
+  ports:
+  - port: 8000
+    targetPort: 8000
+    nodePort: 30080 # 可以通过 http://NodeIP:30080 访问控制台
+  selector:
+    app: agentdeep-api
+---
+# 4. 计算面 (Celery Worker)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentdeep-worker
+  namespace: agentdeep
+spec:
+  replicas: 3 # 启动 3 个并发计算 Worker，用于分布式 DAG 计算
+  selector:
+    matchLabels:
+      app: agentdeep-worker
+  template:
+    metadata:
+      labels:
+        app: agentdeep-worker
+    spec:
+      containers:
+      - name: worker-container
+        image: docker.io/library/agentdeepdive:v1.0 # 复用同一个镜像
+        imagePullPolicy: IfNotPresent
+        # 覆盖 Command 启动为 Celery 进程
+        command: ["celery", "-A", "src.core.celery_app", "worker", "--loglevel=info"]
+        envFrom:
+        - configMapRef:
+            name: agentdeep-config
+        volumeMounts:
+        - name: workspace-storage
+          mountPath: /workspace
+      volumes:
+      - name: workspace-storage
+        persistentVolumeClaim:
+          claimName: agentdeep-workspace-pvc
+---
+# 5. 分布式高可用共享卷声明 (PersistentVolumeClaim)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: agentdeep-workspace-pvc
+  namespace: agentdeep
+spec:
+  accessModes:
+    - ReadWriteMany # RWX 模式，支持多副本 API 与多个 Worker 同时读写
+  resources:
+    requests:
+      storage: 10Gi
+

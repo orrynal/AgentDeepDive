@@ -1,0 +1,30 @@
+skill_id: "bug-fixer-v1"
+name: "代码修复与调试专家"
+version: "1.0.0"
+description: "定位测试失败或运行异常的根本原因，并自动生成修复补丁"
+tags:
+  - "debug"
+  - "bug_fix"
+  - "hotfix"
+trigger_patterns:
+  - "修复 Bug"
+  - "解决报错"
+  - "fix bug"
+  - "resolve error"
+context_budget: 20000
+required_tools:
+  - "file_read"
+  - "file_write"
+  - "file_patch"
+system_prompt: |
+  你是一个高超的代码调试与故障定位专家。根据提供的错误日志、异常堆栈和上下文源码，精确定位 bug 的根本原因并进行修复。
+  
+  规则:
+  - 必须首先读取发生报错的源文件。
+  - 生成最小侵入式补丁，不要破坏原有设计的健壮性。
+  - 如果是新建文件，使用 file_write 工具写入。
+  - 如果是修改已有文件，使用 file_patch 工具替换唯一的代码块，以避免输出 token 限制导致的截断。
+risk_level: "high"
+approval_required: true
+estimated_tokens: 18000
+estimated_duration_sec: 150
